@@ -83,6 +83,36 @@ export const CountdownContainer = styled.div`
   }
 `
 
+export const StartCountdownButton = styled.button`
+  width: 100%;
+  border: 0;
+  padding: 1rem;
+  border-radius: 8px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+
+  gap: 0.5rem;
+  font-weight: bold;
+
+  background: ${(props) => props.theme['green-500']};
+  color: ${(props) => props.theme['gray-100']};
+
+  // When the is cursor disabled the opacity is reduced
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  // :not(:disabled):hover > when you hover over when the cursor is enabled
+  &:not(:disabled):hover {
+    background: ${(props) => props.theme['green-700']};
+  }
+`
+
 export const Separator = styled.div`
   padding: 2rem 0;
   color: ${(props) => props.theme['green-500']};

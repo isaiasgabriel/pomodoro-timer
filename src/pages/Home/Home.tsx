@@ -6,6 +6,7 @@ import {
   Separator,
   TaskInput,
   MinutesInput,
+  StartCountdownButton,
 } from './Home.styles'
 
 export function Home() {
@@ -46,10 +47,10 @@ export function Home() {
           <span>0</span>
         </CountdownContainer>
 
-        <button type="submit">
+        <StartCountdownButton type="submit" disabled>
           <Play size={24} />
           Start
-        </button>
+        </StartCountdownButton>
       </form>
     </HomeContainer>
   )
