@@ -8,7 +8,7 @@ import {
   MinutesInput,
   StartCountdownButton,
 } from './Home.styles'
-import { useState } from 'react'
+import { useForm } from 'react-hook-form'
 
 // Controlled components - we store the user's input in React state, which allows us to monitor and update the component in real-time.
 // Pros: More dynamic; we get real-time updates as the user interacts with the component.
@@ -16,19 +16,36 @@ import { useState } from 'react'
 
 // In this case, we monitor the TaskInput. When the user fills in the input, we enable the start button.
 
+// React hook form - a library that helps manage forms.
+// 1. npm i react-hook-form
+// 2. import {useForm} from 'react-hook-form'
+// 3. const {register, handleSubmit} = useForm()
+// 4. register the inputs (i.e., TaskInput and MinutesInput) using {...register('inputName')}
+// 5. create a function to handle the form submission > handleCreateNewCycle
+// 6. register the function that handles the submit > form onSubmit={handleSubmit(handleCreateNewCycle)}
+
 export function Home() {
-  const [task, setTask] = useState('')
+  const { register, handleSubmit, watch } = useForm()
+
+  function handleCreateNewCycle(data: any) {
+    console.log(data) // this function is basically printing the user input on the console
+  }
+
+  // watch is a function that allows you to observe changes in input fields
+  // In this case, we're watching the 'task' input field
+  const task = watch('task') // Gets the current value of the 'task' input
+  const isSubmitDisabled = !task // Disable the submit button if the task input is empty
+
   return (
     <HomeContainer>
-      <form>
+      <form onSubmit={handleSubmit(handleCreateNewCycle)} action="">
         <FormContainer>
           <label htmlFor="task">I will focus on</label>
           <TaskInput
             id="task"
             placeholder="project"
             list="task-suggestions"
-            onChange={(e) => setTask(e.target.value)}
-            value={task}
+            {...register('task')}
           />
 
           <datalist id="task-suggestions">
@@ -45,6 +62,7 @@ export function Home() {
             step={5}
             min={5}
             max={60}
+            {...register('minutes', { valueAsNumber: true })}
           />
 
           {/* The htmlFor attribute in a label links the label to a form element, in this case the input,
@@ -61,7 +79,7 @@ export function Home() {
           <span>0</span>
         </CountdownContainer>
 
-        <StartCountdownButton type="submit" disabled={!task}>
+        <StartCountdownButton type="submit" disabled={isSubmitDisabled}>
           <Play size={24} />
           Start
         </StartCountdownButton>
