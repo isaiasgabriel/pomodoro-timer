@@ -61,11 +61,33 @@ export const HistoryList = styled.div`
   }
 `
 
+const STATUS_COLORS = {
+  green: 'green-500',
+  yellow: 'yellow-500',
+  red: 'red-500',
+}
+// The "as const" tells TypeScript that the value of each key is not a generic string, but the exact literal value (e.g., 'green-500' for the green key).
+// When you don't specify "as const", TypeScript infers the value of each key as a generic string:
+//
+// {
+//   green: string;
+//   yellow: string;
+//   red: string;
+// }
+//
+// This is necessary because when we connect to our theme colors in the background property,
+// we need the exact color value for TypeScript to correctly understand the specific type.
+
 interface StatusProps {
-  statusColor: 'green' | 'yellow' | 'red'
+  statusColor: keyof typeof STATUS_COLORS
 }
 
-export const Status = styled.span<StatusProps>`
+// "shouldForwardProp" allows to create a validation function that controls wich props are passed to the DOM element.
+// In this case we allow the "statuscolor" and "children" props to be sent to our DOM.
+// The "children" prop is necessary because we need to it display the component's text.
+export const Status = styled.span.withConfig({
+  shouldForwardProp: (prop) => prop === 'statuscolor' || prop === 'children',
+})<StatusProps>`
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -77,6 +99,6 @@ export const Status = styled.span<StatusProps>`
     width: 0.5rem;
     height: 0.5rem;
     border-radius: 9999px;
-    background: ${(props) => props.statusColor};
+    background: ${(props) => props.theme[STATUS_COLORS[props.statusColor]]};
   }
 `
