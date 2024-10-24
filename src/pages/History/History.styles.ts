@@ -60,3 +60,23 @@ export const HistoryList = styled.div`
     }
   }
 `
+
+interface StatusProps {
+  statusColor: 'green' | 'yellow' | 'red'
+}
+
+export const Status = styled.span<StatusProps>`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  // ::before and ::after are elements that we create inside the tag that go, currently before or after our element
+  // if we want it to be visible we need a content
+  &::before {
+    content: '';
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 9999px;
+    background: ${(props) => props.statusColor};
+  }
+`
