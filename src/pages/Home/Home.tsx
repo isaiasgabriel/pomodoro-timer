@@ -8,14 +8,28 @@ import {
   MinutesInput,
   StartCountdownButton,
 } from './Home.styles'
+import { useState } from 'react'
+
+// Controlled components - we store the user's input in React state, which allows us to monitor and update the component in real-time.
+// Pros: More dynamic; we get real-time updates as the user interacts with the component.
+// Cons: Each state change triggers a re-render, which in some cases can affect performance if the component is complex or the updates are frequent.
+
+// In this case, we monitor the TaskInput. When the user fills in the input, we enable the start button.
 
 export function Home() {
+  const [task, setTask] = useState('')
   return (
     <HomeContainer>
       <form>
         <FormContainer>
           <label htmlFor="task">I will focus on</label>
-          <TaskInput id="task" placeholder="project" list="task-suggestions" />
+          <TaskInput
+            id="task"
+            placeholder="project"
+            list="task-suggestions"
+            onChange={(e) => setTask(e.target.value)}
+            value={task}
+          />
 
           <datalist id="task-suggestions">
             <option value="Project 1" />
@@ -47,7 +61,7 @@ export function Home() {
           <span>0</span>
         </CountdownContainer>
 
-        <StartCountdownButton type="submit" disabled>
+        <StartCountdownButton type="submit" disabled={!task}>
           <Play size={24} />
           Start
         </StartCountdownButton>
