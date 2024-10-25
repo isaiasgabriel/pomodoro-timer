@@ -41,10 +41,10 @@ const newCycleFormValidationSchema = zod.object({
     .max(60, 'Minutes should be between 5 and 60'),
 })
 
-interface NewCycleFormData {
-  task: string
-  minutes: number
-}
+// When inferring a TypeScript variable based on a JavaScript structure, use `typeof`.
+// This allows us to create an interface based on our validation schema. So if we add a new input field,
+// we just need to update the validation schema, and the interface will be automatically updated.
+type NewCycleFormData = zod.infer<typeof newCycleFormValidationSchema>
 
 export function Home() {
   const { register, handleSubmit, watch } = useForm<NewCycleFormData>({
