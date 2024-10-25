@@ -9,6 +9,8 @@ import {
   StartCountdownButton,
 } from './Home.styles'
 import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as zod from 'zod'
 
 // Controlled components - we store the user's input in React state, which allows us to monitor and update the component in real-time.
 // Pros: More dynamic; we get real-time updates as the user interacts with the component.
@@ -24,8 +26,28 @@ import { useForm } from 'react-hook-form'
 // 5. create a function to handle the form submission > handleCreateNewCycle
 // 6. register the function that handles the submit > form onSubmit={handleSubmit(handleCreateNewCycle)}
 
+// By the default the react hook form doesn't have validation functions
+// To do this you need a validation library, in this case we are going to use zod
+
+// 1. npm i zod @hookform/resolvers > @hookform/resolvers > library that integrates the hook form with the validation library(zod)
+// 2. import {zodResolver} from '@hookform/resolvers/zod' > don't forget the /zod at the end
+// 3. import * as zod from 'zod'
+
+const newCycleFormValidationSchema = zod.object({
+  task: zod.string().min(1, 'Type your task'),
+  minutes: zod
+    .number()
+    .min(5, 'Minutes should be between 5 and 60')
+    .max(60, 'Minutes should be between 5 and 60'),
+})
+
 export function Home() {
-  const { register, handleSubmit, watch } = useForm()
+  const { register, handleSubmit, watch, formState } = useForm({
+    resolver: zodResolver(newCycleFormValidationSchema),
+  })
+
+  // This line will print the validation errors
+  console.log(formState.errors)
 
   function handleCreateNewCycle(data: any) {
     console.log(data) // this function is basically printing the user input on the console
