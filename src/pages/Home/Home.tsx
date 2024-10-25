@@ -41,15 +41,21 @@ const newCycleFormValidationSchema = zod.object({
     .max(60, 'Minutes should be between 5 and 60'),
 })
 
+interface NewCycleFormData {
+  task: string
+  minutes: number
+}
+
 export function Home() {
-  const { register, handleSubmit, watch, formState } = useForm({
+  const { register, handleSubmit, watch } = useForm<NewCycleFormData>({
     resolver: zodResolver(newCycleFormValidationSchema),
+    defaultValues: {
+      task: '',
+      minutes: 0,
+    },
   })
 
-  // This line will print the validation errors
-  console.log(formState.errors)
-
-  function handleCreateNewCycle(data: any) {
+  function handleCreateNewCycle(data: NewCycleFormData) {
     console.log(data) // this function is basically printing the user input on the console
   }
 
