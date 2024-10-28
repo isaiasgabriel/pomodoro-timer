@@ -1,4 +1,4 @@
-import { Play } from 'phosphor-react'
+import { HandPalm, Play } from 'phosphor-react'
 import {
   HomeContainer,
   FormContainer,
@@ -7,6 +7,7 @@ import {
   TaskInput,
   MinutesInput,
   StartCountdownButton,
+  StopCountdownButton,
 } from './Home.styles'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -53,6 +54,7 @@ interface Cycle {
   task: string
   minutesAmount: number
   startDate: Date
+  interruptedDate?: Date
 }
 
 export function Home() {
@@ -123,6 +125,26 @@ export function Home() {
     reset()
   }
 
+  function handleInterrupCycle() {
+    // We use the setCycles to iterate the cycles array
+    setCycles(
+      // It checks each cycle untill it finds the cycle that matches the activeCycleId
+      cycles.map((cycle) => {
+        // It copies the other values of the cycle using: ...cycle
+        // And then updates the interruptedDate field
+        if (cycle.id === activeCycleId) {
+          return { ...cycle, interruptedDate: new Date() }
+        } else {
+          return cycle
+        }
+      }),
+    )
+
+    // After it updates the cycle, it sets the activeCycleId to null
+    // this way it resets our counter
+    setActiveCycleId(null)
+  }
+
   // This line says that IF we HAVE a cycle, we'll multiply it's minutes by 60, otherwise the value will be 0
   const totalSeconds = activeCycle ? activeCycle.minutesAmount * 60 : 0
   const currentSeconds = activeCycle ? totalSeconds - amountSecondsPassed : 0
@@ -163,6 +185,8 @@ export function Home() {
             placeholder="project"
             list="task-suggestions"
             {...register('task')}
+            // If there's an active cycle it'll disable the input
+            disabled={!!activeCycle}
           />
 
           <datalist id="task-suggestions">
@@ -180,6 +204,8 @@ export function Home() {
             min={5}
             max={60}
             {...register('minutes', { valueAsNumber: true })}
+            // If there's an active cycle it'll disable the input
+            disabled={!!activeCycle}
           />
 
           {/* The htmlFor attribute in a label links the label to a form element, in this case the input,
@@ -196,10 +222,22 @@ export function Home() {
           <span>{seconds[1]}</span>
         </CountdownContainer>
 
-        <StartCountdownButton type="submit" disabled={isSubmitDisabled}>
-          <Play size={24} />
-          Start
-        </StartCountdownButton>
+        {/* 
+        If there IS an activeCycle it'll return the StopCountdownButton
+        Otherwise, we'll have the start button, the logic is: 
+        {activeCycle ? (stop button):(start button)}
+        */}
+        {activeCycle ? (
+          <StopCountdownButton onClick={handleInterrupCycle} type="button">
+            <HandPalm size={24} />
+            Stop
+          </StopCountdownButton>
+        ) : (
+          <StartCountdownButton type="submit" disabled={isSubmitDisabled}>
+            <Play size={24} />
+            Start
+          </StartCountdownButton>
+        )}
       </form>
     </HomeContainer>
   )
