@@ -47,9 +47,10 @@ const newCycleFormValidationSchema = zod.object({
 type NewCycleFormData = zod.infer<typeof newCycleFormValidationSchema>
 
 export function Home() {
-  const { register, handleSubmit, watch } = useForm<NewCycleFormData>({
+  const { register, handleSubmit, watch, reset } = useForm<NewCycleFormData>({
     resolver: zodResolver(newCycleFormValidationSchema),
     defaultValues: {
+      // 2. These default values
       task: '',
       minutes: 0,
     },
@@ -57,6 +58,7 @@ export function Home() {
 
   function handleCreateNewCycle(data: NewCycleFormData) {
     console.log(data) // this function is basically printing the user input on the console
+    reset() // 1. The reset function return the input to the default value, if you don't specify it, it won't work
   }
 
   // watch is a function that allows you to observe changes in input fields
