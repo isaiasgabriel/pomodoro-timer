@@ -60,6 +60,8 @@ export function Home() {
   // by doing that, we don't need to add another property in the interface like "isActive"
   // In this state, we're basically saying that it can be either be a string or null and the initial value is null
   const [activeCycleId, setActiveCycleId] = useState<string | null>(null)
+  // This state will be responsible to keep track of how many seconds have passed to update our counter
+  const [amountSecondsPassed, setAmountSecondsPassed] = useState(0)
 
   const { register, handleSubmit, watch, reset } = useForm<NewCycleFormData>({
     resolver: zodResolver(newCycleFormValidationSchema),
@@ -94,7 +96,18 @@ export function Home() {
   // If it doens't find any activeCycle it'll return as undefined, otherwise we'll our Cycle object
   const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId)
 
-  console.log(activeCycle)
+  // This line says that IF we HAVE a cycle, we'll multiply it's minutes by 60, otherwise the value will be 0
+  const totalSeconds = activeCycle ? activeCycle.minutesAmount * 60 : 0
+  const currentSeconds = activeCycle ? totalSeconds - amountSecondsPassed : 0
+
+  const minutesAmount = Math.floor(currentSeconds / 60)
+  const secondsAmount = currentSeconds % 60
+
+  // We transform the minutes amount into a string and use the padStart function to ensure it has 2 characters.
+  // If the string has only 1 character, padStart fills it at the start with a '0'.
+  const minutes = String(minutesAmount).padStart(2, '0')
+  // The same goes for the seconds:
+  const seconds = String(secondsAmount).padStart(2, '0')
 
   // watch is a function that allows you to observe changes in input fields
   // In this case, we're watching the 'task' input field
@@ -137,11 +150,11 @@ export function Home() {
         </FormContainer>
 
         <CountdownContainer>
-          <span>0</span>
-          <span>0</span>
+          <span>{minutes[0]}</span>
+          <span>{minutes[1]}</span>
           <Separator>:</Separator>
-          <span>0</span>
-          <span>0</span>
+          <span>{seconds[0]}</span>
+          <span>{seconds[1]}</span>
         </CountdownContainer>
 
         <StartCountdownButton type="submit" disabled={isSubmitDisabled}>
