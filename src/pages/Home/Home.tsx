@@ -11,7 +11,8 @@ import {
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as zod from 'zod'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { differenceInSeconds } from 'date-fns'
 
 // Controlled components - we store the user's input in React state, which allows us to monitor and update the component in real-time.
 // Pros: More dynamic; we get real-time updates as the user interacts with the component.
@@ -51,6 +52,7 @@ interface Cycle {
   id: string
   task: string
   minutesAmount: number
+  startDate: Date
 }
 
 export function Home() {
@@ -72,6 +74,21 @@ export function Home() {
     },
   })
 
+  const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId)
+
+  useEffect(() => {
+    if (activeCycle) {
+      // Each second (1000ms), we'll calculate how many seconds have passed based on the current date
+      // compared with the startDate of the activeCycle and update it using the setAmountSecondsPassed function
+      // so our countdown works
+      setInterval(() => {
+        setAmountSecondsPassed(
+          differenceInSeconds(new Date(), activeCycle.startDate),
+        )
+      }, 1000)
+    }
+  }, [activeCycle])
+
   function handleCreateNewCycle(data: NewCycleFormData) {
     const id = String(new Date().getTime())
 
@@ -82,6 +99,7 @@ export function Home() {
       id,
       task: data.task,
       minutesAmount: data.minutes,
+      startDate: new Date(),
     }
 
     // We're using an updater function to access the newest information of our array ((array)=> [])
@@ -92,9 +110,6 @@ export function Home() {
 
     reset()
   }
-
-  // If it doens't find any activeCycle it'll return as undefined, otherwise we'll our Cycle object
-  const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId)
 
   // This line says that IF we HAVE a cycle, we'll multiply it's minutes by 60, otherwise the value will be 0
   const totalSeconds = activeCycle ? activeCycle.minutesAmount * 60 : 0
