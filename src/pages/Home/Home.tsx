@@ -11,6 +11,7 @@ import {
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as zod from 'zod'
+import { useState } from 'react'
 
 // Controlled components - we store the user's input in React state, which allows us to monitor and update the component in real-time.
 // Pros: More dynamic; we get real-time updates as the user interacts with the component.
@@ -46,7 +47,20 @@ const newCycleFormValidationSchema = zod.object({
 // we just need to update the validation schema, and the interface will be automatically updated.
 type NewCycleFormData = zod.infer<typeof newCycleFormValidationSchema>
 
+interface Cycle {
+  id: string
+  task: string
+  minutesAmount: number
+}
+
 export function Home() {
+  // We're basicallyng saying that our state will be an array of Cycles, and the initial value is an array
+  const [cycles, setCycles] = useState<Cycle[]>([])
+  // In order to keep track of the active cycle, we'll create a state responsible to save it's id
+  // by doing that, we don't need to add another property in the interface like "isActive"
+  // In this state, we're basically saying that it can be either be a string or null and the initial value is null
+  const [activeCycleId, setActiveCycleId] = useState<string | null>(null)
+
   const { register, handleSubmit, watch, reset } = useForm<NewCycleFormData>({
     resolver: zodResolver(newCycleFormValidationSchema),
     defaultValues: {
@@ -57,9 +71,30 @@ export function Home() {
   })
 
   function handleCreateNewCycle(data: NewCycleFormData) {
-    console.log(data) // this function is basically printing the user input on the console
-    reset() // 1. The reset function return the input to the default value, if you don't specify it, it won't work
+    const id = String(new Date().getTime())
+
+    // Since we don't want any external library to generate the ID, we use the Date in the string type
+    // After that we create our Cycle object and insert it into our Cycle array state:
+
+    const newCycle: Cycle = {
+      id,
+      task: data.task,
+      minutesAmount: data.minutes,
+    }
+
+    // We're using an updater function to access the newest information of our array ((array)=> [])
+    // After that we copy the information of the previous cycles inside the array (...array)
+    // And then we insert the new cycle into the state (newCycle)
+    setCycles((array) => [...array, newCycle])
+    setActiveCycleId(id) // Whenever we create a new cycle, we update the active cycle id from null to the cycle's id
+
+    reset()
   }
+
+  // If it doens't find any activeCycle it'll return as undefined, otherwise we'll our Cycle object
+  const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId)
+
+  console.log(activeCycle)
 
   // watch is a function that allows you to observe changes in input fields
   // In this case, we're watching the 'task' input field
