@@ -77,15 +77,23 @@ export function Home() {
   const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId)
 
   useEffect(() => {
+    // We save the interval into an external variable so we can access in our return function at the end
+    let interval: number
+
     if (activeCycle) {
       // Each second (1000ms), we'll calculate how many seconds have passed based on the current date
       // compared with the startDate of the activeCycle and update it using the setAmountSecondsPassed function
       // so our countdown works
-      setInterval(() => {
+      interval = setInterval(() => {
         setAmountSecondsPassed(
           differenceInSeconds(new Date(), activeCycle.startDate),
         )
       }, 1000)
+    }
+
+    // This return is a "cleanup" function, whenever the useEffect is re-runned it'll clear our interval
+    return () => {
+      clearInterval(interval)
     }
   }, [activeCycle])
 
@@ -107,6 +115,10 @@ export function Home() {
     // And then we insert the new cycle into the state (newCycle)
     setCycles((array) => [...array, newCycle])
     setActiveCycleId(id) // Whenever we create a new cycle, we update the active cycle id from null to the cycle's id
+    setAmountSecondsPassed(0)
+    // If we don't set the amont of seconds that have passed to 0
+    // Whenever we start a new counter it'll start by dreacreasing the time that have passed
+    // From the previous counter
 
     reset()
   }
