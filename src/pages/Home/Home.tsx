@@ -136,6 +136,18 @@ export function Home() {
   // The same goes for the seconds:
   const seconds = String(secondsAmount).padStart(2, '0')
 
+  useEffect(() => {
+    if (activeCycle) {
+      document.title = `${minutes}:${seconds}`
+    }
+  }, [minutes, seconds, activeCycle])
+
+  // When the tab is inactive, it’s normal to see the timer decrease by about 2 seconds.
+  // This is due to browser optimizations in background tabs.
+  // To accurately track the elapsed time, we use "differenceInSeconds" from 'date-fns' instead of relying solely on "setInterval",
+  // as "differenceInSeconds" calculates the time difference precisely based on actual time passed.
+  // We only use "setInterval" to trigger regular updates.
+
   // watch is a function that allows you to observe changes in input fields
   // In this case, we're watching the 'task' input field
   const task = watch('task') // Gets the current value of the 'task' input
