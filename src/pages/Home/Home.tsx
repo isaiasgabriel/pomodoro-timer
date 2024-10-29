@@ -1,11 +1,6 @@
 import { HandPalm, Play } from 'phosphor-react'
 import {
   HomeContainer,
-  FormContainer,
-  CountdownContainer,
-  Separator,
-  TaskInput,
-  MinutesInput,
   StartCountdownButton,
   StopCountdownButton,
 } from './Home.styles'
@@ -14,6 +9,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import * as zod from 'zod'
 import { useEffect, useState } from 'react'
 import { differenceInSeconds } from 'date-fns'
+import { NewCycleForm } from './Components/NewCycleForm/NewCycleForm'
+import { Countdown } from './Components/Countdown/Countdown'
 
 // Controlled components - we store the user's input in React state, which allows us to monitor and update the component in real-time.
 // Pros: More dynamic; we get real-time updates as the user interacts with the component.
@@ -206,55 +203,8 @@ export function Home() {
   return (
     <HomeContainer>
       <form onSubmit={handleSubmit(handleCreateNewCycle)} action="">
-        <FormContainer>
-          <label htmlFor="task">I will focus on</label>
-          <TaskInput
-            id="task"
-            placeholder="project"
-            list="task-suggestions"
-            {...register('task')}
-            // If there's an active cycle it'll disable the input
-            disabled={!!activeCycle}
-          />
-
-          <datalist id="task-suggestions">
-            <option value="Project 1" />
-            <option value="Project 2" />
-            <option value="Project 3" />
-          </datalist>
-
-          <label htmlFor="minutes">for</label>
-          <MinutesInput
-            id="minutes"
-            type="number"
-            placeholder="00"
-            step={5}
-            min={5}
-            max={60}
-            {...register('minutes', { valueAsNumber: true })}
-            // If there's an active cycle it'll disable the input
-            disabled={!!activeCycle}
-          />
-
-          {/* The htmlFor attribute in a label links the label to a form element, in this case the input,
-          specified by the id. This allows the user to click on the label to focus the input fiel */}
-
-          <span>minutes.</span>
-        </FormContainer>
-
-        <CountdownContainer>
-          <span>{minutes[0]}</span>
-          <span>{minutes[1]}</span>
-          <Separator>:</Separator>
-          <span>{seconds[0]}</span>
-          <span>{seconds[1]}</span>
-        </CountdownContainer>
-
-        {/* 
-        If there IS an activeCycle it'll return the StopCountdownButton
-        Otherwise, we'll have the start button, the logic is: 
-        {activeCycle ? (stop button):(start button)}
-        */}
+        <NewCycleForm />
+        <Countdown />
         {activeCycle ? (
           <StopCountdownButton onClick={handleInterrupCycle} type="button">
             <HandPalm size={24} />
