@@ -55,6 +55,7 @@ interface Cycle {
   minutesAmount: number
   startDate: Date
   interruptedDate?: Date
+  finishedDate?: Date
 }
 
 export function Home() {
@@ -78,18 +79,45 @@ export function Home() {
 
   const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId)
 
+  // We moved the totalSeconds here so we can access it in the useEffect below in order to stop our counter correctly
+  const totalSeconds = activeCycle ? activeCycle.minutesAmount * 60 : 0
+
   useEffect(() => {
     // We save the interval into an external variable so we can access in our return function at the end
     let interval: number
 
     if (activeCycle) {
-      // Each second (1000ms), we'll calculate how many seconds have passed based on the current date
-      // compared with the startDate of the activeCycle and update it using the setAmountSecondsPassed function
-      // so our countdown works
       interval = setInterval(() => {
-        setAmountSecondsPassed(
-          differenceInSeconds(new Date(), activeCycle.startDate),
+        const secondsDifference = differenceInSeconds(
+          new Date(),
+          activeCycle.startDate,
         )
+
+        console.log(totalSeconds)
+
+        // Each seconds it compares the time NOW versus the time it started,
+        // So it starts like: 1, 2, 3, 4, 5...
+        // When it reaches the total seconds we enter the IF below:
+
+        if (secondsDifference >= totalSeconds) {
+          // First, we update the finishedDate field of our cycle
+          setCycles((state) =>
+            // state in this case is the cycles array, it searches the cycle that matches the activeCycleId
+            state.map((cycle) => {
+              if (cycle.id === activeCycleId) {
+                return { ...cycle, finishedDate: new Date() }
+              } else {
+                return cycle
+              }
+            }),
+          )
+
+          setAmountSecondsPassed(totalSeconds)
+          clearInterval(interval)
+          setActiveCycleId(null) // Enables the start button
+        } else {
+          setAmountSecondsPassed(secondsDifference)
+        }
       }, 1000)
     }
 
@@ -97,7 +125,7 @@ export function Home() {
     return () => {
       clearInterval(interval)
     }
-  }, [activeCycle])
+  }, [activeCycle, totalSeconds, activeCycleId])
 
   function handleCreateNewCycle(data: NewCycleFormData) {
     const id = String(new Date().getTime())
@@ -128,16 +156,17 @@ export function Home() {
   function handleInterrupCycle() {
     // We use the setCycles to iterate the cycles array
     setCycles(
-      // It checks each cycle untill it finds the cycle that matches the activeCycleId
-      cycles.map((cycle) => {
-        // It copies the other values of the cycle using: ...cycle
-        // And then updates the interruptedDate field
-        if (cycle.id === activeCycleId) {
-          return { ...cycle, interruptedDate: new Date() }
-        } else {
-          return cycle
-        }
-      }),
+      // Updater function correction
+      (state) =>
+        state.map((cycle) => {
+          // It copies the other values of the cycle using: ...cycle
+          // And then updates the interruptedDate field
+          if (cycle.id === activeCycleId) {
+            return { ...cycle, interruptedDate: new Date() }
+          } else {
+            return cycle
+          }
+        }),
     )
 
     // After it updates the cycle, it sets the activeCycleId to null
@@ -146,7 +175,6 @@ export function Home() {
   }
 
   // This line says that IF we HAVE a cycle, we'll multiply it's minutes by 60, otherwise the value will be 0
-  const totalSeconds = activeCycle ? activeCycle.minutesAmount * 60 : 0
   const currentSeconds = activeCycle ? totalSeconds - amountSecondsPassed : 0
 
   const minutesAmount = Math.floor(currentSeconds / 60)
