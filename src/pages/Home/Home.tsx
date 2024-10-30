@@ -4,7 +4,7 @@ import {
   StartCountdownButton,
   StopCountdownButton,
 } from './Home.styles'
-import { useEffect, useState } from 'react'
+import { createContext, useEffect, useState } from 'react'
 import { NewCycleForm } from './Components/NewCycleForm/NewCycleForm'
 import { Countdown } from './Components/Countdown/Countdown'
 
@@ -17,11 +17,43 @@ interface Cycle {
   finishedDate?: Date
 }
 
+// 2. Create the context interface
+interface CyclesContextType {
+  // Add the variables and states that you want to be shared across components
+  activeCycle: Cycle | undefined
+  activeCycleId: string | null
+  markCurrentCycleAsFinished: () => void
+  markCurrentCycleIdAsNull: () => void
+}
+
+// 1. Create the context
+export const CyclesContext = createContext({} as CyclesContextType)
+
 export function Home() {
   const [cycles, setCycles] = useState<Cycle[]>([])
   const [activeCycleId, setActiveCycleId] = useState<string | null>(null)
 
   const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId)
+
+  function markCurrentCycleAsFinished() {
+    setCycles((state) =>
+      state.map((cycle) => {
+        if (cycle.id === activeCycleId) {
+          return { ...cycle, finishedDate: new Date() }
+        } else {
+          return cycle
+        }
+      }),
+    )
+  }
+
+  // Instead of passing the 'setCycles' and 'setActiveCycleId' functions directly through context,
+  // we created dedicated functions (e.g., markCurrentCycleAsFinished and markCurrentCycleIdAsNull) to update state.
+  // This approach simplifies the interface by avoiding the complex types of React's 'set' functions,
+
+  function markCurrentCycleIdAsNull() {
+    setActiveCycleId(null)
+  }
 
   function handleCreateNewCycle(data: NewCycleFormData) {
     const id = String(new Date().getTime())
@@ -54,32 +86,25 @@ export function Home() {
     setActiveCycleId(null)
   }
 
-  const currentSeconds = activeCycle ? totalSeconds - amountSecondsPassed : 0
-
-  const minutesAmount = Math.floor(currentSeconds / 60)
-  const secondsAmount = currentSeconds % 60
-
-  const minutes = String(minutesAmount).padStart(2, '0')
-  const seconds = String(secondsAmount).padStart(2, '0')
-
-  useEffect(() => {
-    if (activeCycle) {
-      document.title = `${minutes}:${seconds}`
-    }
-  }, [minutes, seconds, activeCycle])
-
   const task = watch('task') // Gets the current value of the 'task' input
   const isSubmitDisabled = !task // Disable the submit button if the task input is empty
 
   return (
     <HomeContainer>
       <form onSubmit={handleSubmit(handleCreateNewCycle)} action="">
-        <NewCycleForm />
-        <Countdown
-          activeCycle={activeCycle}
-          activeCycleId={activeCycleId}
-          setCycles={setCycles}
-        />
+        {/* 3. Wrap the components that'll use those context inside the Context.provider */}
+        <CyclesContext.Provider
+          // 4. Add the values inside the value props
+          value={{
+            activeCycle,
+            activeCycleId,
+            markCurrentCycleAsFinished,
+            markCurrentCycleIdAsNull,
+          }}
+        >
+          <NewCycleForm />
+          <Countdown />
+        </CyclesContext.Provider>
         {activeCycle ? (
           <StopCountdownButton onClick={handleInterrupCycle} type="button">
             <HandPalm size={24} />
