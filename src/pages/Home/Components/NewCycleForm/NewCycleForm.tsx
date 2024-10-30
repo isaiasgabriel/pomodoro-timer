@@ -1,6 +1,26 @@
+import { useForm } from 'react-hook-form'
 import { FormContainer, TaskInput, MinutesInput } from './NewCycleForm.styles'
+import * as zod from 'zod'
+import { zodResolver } from '@hookform/resolvers/zod'
+
+const newCycleFormValidationSchema = zod.object({
+  task: zod.string().min(1, 'Type your task'),
+  minutes: zod
+    .number()
+    .min(5, 'Minutes should be between 5 and 60')
+    .max(60, 'Minutes should be between 5 and 60'),
+})
+
+type NewCycleFormData = zod.infer<typeof newCycleFormValidationSchema>
 
 export function NewCycleForm() {
+  const { register, handleSubmit, watch, reset } = useForm<NewCycleFormData>({
+    resolver: zodResolver(newCycleFormValidationSchema),
+    defaultValues: {
+      task: '',
+      minutes: 0,
+    },
+  })
   return (
     <FormContainer>
       <label htmlFor="task">I will focus on</label>
@@ -9,7 +29,6 @@ export function NewCycleForm() {
         placeholder="project"
         list="task-suggestions"
         {...register('task')}
-        // If there's an active cycle it'll disable the input
         disabled={!!activeCycle}
       />
 
@@ -28,12 +47,8 @@ export function NewCycleForm() {
         min={5}
         max={60}
         {...register('minutes', { valueAsNumber: true })}
-        // If there's an active cycle it'll disable the input
         disabled={!!activeCycle}
       />
-
-      {/* The htmlFor attribute in a label links the label to a form element, in this case the input,
-          specified by the id. This allows the user to click on the label to focus the input fiel */}
 
       <span>minutes.</span>
     </FormContainer>
