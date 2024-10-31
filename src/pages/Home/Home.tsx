@@ -34,14 +34,19 @@ export function Home() {
     },
   })
 
-  const { handleSubmit, watch /* reset */ } = newCycleForm
+  const { handleSubmit, watch, reset } = newCycleForm
+
+  function handleCreateNewCycle(data: NewCycleFormData) {
+    createNewCycle(data)
+    reset()
+  }
 
   const task = watch('task') // Gets the current value of the 'task' input
   const isSubmitDisabled = !task // Disable the submit button if the task input is empty
 
   return (
     <HomeContainer>
-      <form onSubmit={handleSubmit(createNewCycle)} action="">
+      <form onSubmit={handleSubmit(handleCreateNewCycle)} action="">
         {/* 3. Wrap the components that'll use those context inside the Context.provider */}
         <FormProvider {...newCycleForm}>
           <NewCycleForm />
