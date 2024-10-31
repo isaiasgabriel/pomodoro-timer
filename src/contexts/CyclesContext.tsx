@@ -30,7 +30,7 @@
 // const { activeCycle } = useContext(CyclesContext)
 //
 
-import { createContext, ReactNode, useState } from 'react'
+import { createContext, ReactNode, useReducer, useState } from 'react'
 
 interface CreateCycleData {
   task: string
@@ -70,7 +70,32 @@ export function CyclesContextProvider({
   // In this case, the children is the <Router />
   children,
 }: CyclesContextProviderProps) {
-  const [cycles, setCycles] = useState<Cycle[]>([])
+  // useReducer receives 2 arguments:
+  // 1. A reducer function
+  // 2. An initial state
+  //
+  // Usage example:
+  // const [state, dispatch] = useReducer(() => {}, []);
+  //
+  // 1. Reducer function: (state: stateType, action: any) => {}
+  // 2. Initial state: []
+  //
+  // When dispatch() is called, it triggers the reducer function. The `action` parameter
+  // contains the arguments passed to `dispatch`. Unlike useState, we don't modify the
+  // state directly with a setState function; instead, all state-related logic is handled
+  // within the reducer.
+  //
+  // In summary: whenever dispatch is called, it runs the reducer function, with `action`
+  // providing the necessary data for state modifications.
+
+  const [cycles, dispatch] = useReducer((state: Cycle[], action: any) => {
+    if (action.type === 'ADD_NEW_CYCLE') {
+      return [...state, action.payload.newCycle]
+    }
+
+    return state
+  }, [])
+
   const [activeCycleId, setActiveCycleId] = useState<string | null>(null)
   const [amountSecondsPassed, setAmountSecondsPassed] = useState(0)
 
@@ -81,15 +106,21 @@ export function CyclesContextProvider({
   }
 
   function markCurrentCycleAsFinished() {
-    setCycles((state) =>
-      state.map((cycle) => {
-        if (cycle.id === activeCycleId) {
-          return { ...cycle, finishedDate: new Date() }
-        } else {
-          return cycle
-        }
-      }),
-    )
+    // setCycles((state) =>
+    //   state.map((cycle) => {
+    //     if (cycle.id === activeCycleId) {
+    //       return { ...cycle, finishedDate: new Date() }
+    //     } else {
+    //       return cycle
+    //     }
+    //   }),
+    // )
+    dispatch({
+      type: 'MARK_CURRENT_CYCLE_AS_FINISHED',
+      payload: {
+        activeCycle,
+      },
+    })
   }
 
   function markCurrentCycleIdAsNull() {
@@ -106,7 +137,15 @@ export function CyclesContextProvider({
       startDate: new Date(),
     }
 
-    setCycles((array) => [...array, newCycle])
+    // setCycles((array) => [...array, newCycle])
+    dispatch({
+      type: 'ADD_NEW_CYCLE',
+      payload: {
+        newCycle,
+      },
+    })
+    // We pass an object to dispatch. The "type" property specifies which action
+    // to perform, and "payload" contains the data needed for that action.
     setActiveCycleId(id)
     setAmountSecondsPassed(0)
 
@@ -114,16 +153,22 @@ export function CyclesContextProvider({
   }
 
   function interruptCurrentCycle() {
-    setCycles((state) =>
-      state.map((cycle) => {
-        if (cycle.id === activeCycleId) {
-          return { ...cycle, interruptedDate: new Date() }
-        } else {
-          return cycle
-        }
-      }),
-    )
+    // setCycles((state) =>
+    //   state.map((cycle) => {
+    //     if (cycle.id === activeCycleId) {
+    //       return { ...cycle, interruptedDate: new Date() }
+    //     } else {
+    //       return cycle
+    //     }
+    //   }),
+    // )
 
+    dispatch({
+      type: 'INTERRUPT_CURRENT_CYCLE',
+      payload: {
+        activeCycleId,
+      },
+    })
     setActiveCycleId(null)
   }
 
