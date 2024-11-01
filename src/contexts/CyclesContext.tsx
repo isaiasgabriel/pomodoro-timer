@@ -62,6 +62,13 @@ interface CyclesContextProviderProps {
   children: ReactNode
 }
 
+// Instead of one state for the cycles array and one state for the active cycle id
+// We'll put those two inside an object, this way we'll have just one reducer responsible to manage the states
+interface CyclesState {
+  cycles: Cycle[]
+  activeCycleId: string | null
+}
+
 export const CyclesContext = createContext({} as CyclesContextType)
 
 export function CyclesContextProvider({
@@ -70,34 +77,54 @@ export function CyclesContextProvider({
   // In this case, the children is the <Router />
   children,
 }: CyclesContextProviderProps) {
-  // useReducer receives 2 arguments:
-  // 1. A reducer function
-  // 2. An initial state
-  //
-  // Usage example:
-  // const [state, dispatch] = useReducer(() => {}, []);
-  //
-  // 1. Reducer function: (state: stateType, action: any) => {}
-  // 2. Initial state: []
-  //
-  // When dispatch() is called, it triggers the reducer function. The `action` parameter
-  // contains the arguments passed to `dispatch`. Unlike useState, we don't modify the
-  // state directly with a setState function; instead, all state-related logic is handled
-  // within the reducer.
-  //
-  // In summary: whenever dispatch is called, it runs the reducer function, with `action`
-  // providing the necessary data for state modifications.
+  // Previoulsy, the Reducer returned only the cycles array, now we changed the architecture in a way that we return an object with 2 values:
+  // 1. Cycle[] array;
+  // 2. activeCycleId,
+  // This allows one reducer to manage both states, so we no longer need a separate set function to to update activeCycleId.
+  const [cyclesState, dispatch] = useReducer(
+    (state: CyclesState, action: any) => {
+      if (action.type === 'ADD_NEW_CYCLE') {
+        return {
+          ...state,
+          cycles: [...state.cycles, action.payload.newCycle],
+          activeCycleId: action.payload.newCycle.id,
+        }
+      }
 
-  const [cycles, dispatch] = useReducer((state: Cycle[], action: any) => {
-    if (action.type === 'ADD_NEW_CYCLE') {
-      return [...state, action.payload.newCycle]
-    }
+      if (action.type === 'INTERRUPT_CURRENT_CYCLE') {
+        return {
+          ...state,
+          cycles: state.cycles.map((cycle) => {
+            if (cycle.id === state.activeCycleId) {
+              return { ...cycle, interruptedDate: new Date() }
+            } else {
+              return cycle
+            }
+          }),
+          activeCycleId: null,
+        }
+      }
 
-    return state
-  }, [])
+      if (action.type === 'MARK_CURRENT_CYCLE_ID_AS_NULL') {
+        return {
+          ...state,
+          activeCycleId: null,
+        }
+      }
 
-  const [activeCycleId, setActiveCycleId] = useState<string | null>(null)
+      return state
+    },
+    {
+      cycles: [],
+      activeCycleId: null,
+    },
+  )
+  // IMPORTANT: Don't forget to set the initial values of our reducer, which is an object that'll have our states
+
   const [amountSecondsPassed, setAmountSecondsPassed] = useState(0)
+
+  // Now, we can destructure both cycles and activeCycleId from our state object returned from the reducer
+  const { cycles, activeCycleId } = cyclesState
 
   const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId)
 
@@ -124,7 +151,12 @@ export function CyclesContextProvider({
   }
 
   function markCurrentCycleIdAsNull() {
-    setActiveCycleId(null)
+    dispatch({
+      type: 'MARK_CURRENT_CYCLE_ID_AS_NULL',
+      payload: {
+        activeCycle,
+      },
+    })
   }
 
   function createNewCycle(data: CreateCycleData) {
@@ -146,30 +178,16 @@ export function CyclesContextProvider({
     })
     // We pass an object to dispatch. The "type" property specifies which action
     // to perform, and "payload" contains the data needed for that action.
-    setActiveCycleId(id)
     setAmountSecondsPassed(0)
-
-    // reset()
   }
 
   function interruptCurrentCycle() {
-    // setCycles((state) =>
-    //   state.map((cycle) => {
-    //     if (cycle.id === activeCycleId) {
-    //       return { ...cycle, interruptedDate: new Date() }
-    //     } else {
-    //       return cycle
-    //     }
-    //   }),
-    // )
-
     dispatch({
       type: 'INTERRUPT_CURRENT_CYCLE',
       payload: {
         activeCycleId,
       },
     })
-    setActiveCycleId(null)
   }
 
   return (
