@@ -83,36 +83,45 @@ export function CyclesContextProvider({
   // This allows one reducer to manage both states, so we no longer need a separate set function to to update activeCycleId.
   const [cyclesState, dispatch] = useReducer(
     (state: CyclesState, action: any) => {
-      if (action.type === 'ADD_NEW_CYCLE') {
-        return {
-          ...state,
-          cycles: [...state.cycles, action.payload.newCycle],
-          activeCycleId: action.payload.newCycle.id,
-        }
+      switch (action.type) {
+        case 'ADD_NEW_CYCLE':
+          return {
+            ...state,
+            cycles: [...state.cycles, action.payload.newCycle],
+            activeCycleId: action.payload.newCycle.id,
+          }
+        case 'INTERRUPT_CURRENT_CYCLE':
+          return {
+            ...state,
+            cycles: state.cycles.map((cycle) => {
+              if (cycle.id === state.activeCycleId) {
+                return { ...cycle, interruptedDate: new Date() }
+              } else {
+                return cycle
+              }
+            }),
+            activeCycleId: null,
+          }
+        case 'MARK_CURRENT_CYCLE_ID_AS_NULL':
+          return {
+            ...state,
+            activeCycleId: null,
+          }
+        case 'MARK_CURRENT_CYCLE_AS_FINISHED':
+          return {
+            ...state,
+            cycles: state.cycles.map((cycle) => {
+              if (cycle.id === state.activeCycleId) {
+                return { ...cycle, finishedDate: new Date() }
+              } else {
+                return cycle
+              }
+            }),
+            activeCycleId: null,
+          }
+        default:
+          return state
       }
-
-      if (action.type === 'INTERRUPT_CURRENT_CYCLE') {
-        return {
-          ...state,
-          cycles: state.cycles.map((cycle) => {
-            if (cycle.id === state.activeCycleId) {
-              return { ...cycle, interruptedDate: new Date() }
-            } else {
-              return cycle
-            }
-          }),
-          activeCycleId: null,
-        }
-      }
-
-      if (action.type === 'MARK_CURRENT_CYCLE_ID_AS_NULL') {
-        return {
-          ...state,
-          activeCycleId: null,
-        }
-      }
-
-      return state
     },
     {
       cycles: [],
@@ -133,15 +142,6 @@ export function CyclesContextProvider({
   }
 
   function markCurrentCycleAsFinished() {
-    // setCycles((state) =>
-    //   state.map((cycle) => {
-    //     if (cycle.id === activeCycleId) {
-    //       return { ...cycle, finishedDate: new Date() }
-    //     } else {
-    //       return cycle
-    //     }
-    //   }),
-    // )
     dispatch({
       type: 'MARK_CURRENT_CYCLE_AS_FINISHED',
       payload: {
