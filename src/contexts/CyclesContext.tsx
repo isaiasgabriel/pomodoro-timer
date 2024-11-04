@@ -30,7 +30,13 @@
 // const { activeCycle } = useContext(CyclesContext)
 //
 
-import { createContext, ReactNode, useReducer, useState } from 'react'
+import {
+  createContext,
+  ReactNode,
+  useEffect,
+  useReducer,
+  useState,
+} from 'react'
 import { cyclesReducer, Cycle } from '../reducers/reducer'
 import {
   addNewCycleAction,
@@ -72,13 +78,42 @@ export function CyclesContextProvider({
   // 1. Cycle[] array;
   // 2. activeCycleId,
   // This allows one reducer to manage both states, so we no longer need a separate set function to to update activeCycleId.
-  const [cyclesState, dispatch] = useReducer(cyclesReducer, {
-    cycles: [],
-    activeCycleId: null,
-  })
+  const [cyclesState, dispatch] = useReducer(
+    cyclesReducer,
+    {
+      cycles: [],
+      activeCycleId: null,
+    },
+    (initialState) => {
+      const storedStateAsJSON = localStorage.getItem(
+        '@pomodoro-timer:cycles-state-1.0.0',
+      )
+
+      if (storedStateAsJSON) {
+        return JSON.parse(storedStateAsJSON)
+      }
+
+      // If there's no cyclesState in the localStorage it'll return the initial state above previously declared
+      return initialState
+    },
+  )
+  // The third argument in useReducer is an initializer function, executed during the initial render.
+  // Here, it checks for a saved state in localStorage.
+  // If a stored state is found, it parses and returns it, initializing cyclesState.
+  // Otherwise, it returns the default initial state.
   // IMPORTANT: Don't forget to set the initial values of our reducer, which is an object that'll have our states
 
   const [amountSecondsPassed, setAmountSecondsPassed] = useState(0)
+
+  useEffect(() => {
+    const stateJSON = JSON.stringify(cyclesState)
+
+    localStorage.setItem('@pomodoro-timer:cycles-state-1.0.0', stateJSON)
+  }, [cyclesState])
+  // This useEffect runs whenever cyclesState changes.
+  // It serializes the updated cyclesState and saves it to localStorage.
+  // This ensures the application's state is preserved across page reloads.
+  // On reload, the initializer function retrieves and restores the saved state.
 
   // Now, we can destructure both cycles and activeCycleId from our state object returned from the reducer
   const { cycles, activeCycleId } = cyclesState
