@@ -44,6 +44,7 @@ import {
   markCurrentCycleAsFinishedAction,
   markCurrentCycleIdAsNullAction,
 } from '../reducers/actions'
+import { differenceInSeconds } from 'date-fns'
 
 interface CreateCycleData {
   task: string
@@ -103,7 +104,20 @@ export function CyclesContextProvider({
   // Otherwise, it returns the default initial state.
   // IMPORTANT: Don't forget to set the initial values of our reducer, which is an object that'll have our states
 
-  const [amountSecondsPassed, setAmountSecondsPassed] = useState(0)
+  // Moved these states up so we can access to define the amountSecondsPassed state below
+  const { cycles, activeCycleId } = cyclesState
+  const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId)
+
+  const [amountSecondsPassed, setAmountSecondsPassed] = useState(() => {
+    // We'll check if there's an active cycle to define the amountSecondsPassed
+    // This way, whenever we reload the page it comes back with the correct time
+    if (activeCycle) {
+      return differenceInSeconds(new Date(), new Date(activeCycle.startDate))
+    }
+
+    // Otherwise, if there's no activeCycle it'll return 0
+    return 0
+  })
 
   useEffect(() => {
     const stateJSON = JSON.stringify(cyclesState)
@@ -116,9 +130,6 @@ export function CyclesContextProvider({
   // On reload, the initializer function retrieves and restores the saved state.
 
   // Now, we can destructure both cycles and activeCycleId from our state object returned from the reducer
-  const { cycles, activeCycleId } = cyclesState
-
-  const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId)
 
   function setSecondsPassed(seconds: number) {
     setAmountSecondsPassed(seconds)

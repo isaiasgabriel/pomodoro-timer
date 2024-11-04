@@ -23,7 +23,8 @@ export function Countdown() {
       interval = setInterval(() => {
         const secondsDifference = differenceInSeconds(
           new Date(),
-          activeCycle.startDate,
+          // Converts the string retrieved from localStorage into a Date object
+          new Date(activeCycle.startDate),
         )
 
         console.log(totalSeconds)
